@@ -93,7 +93,7 @@ class Converter:
                                       fg=button_fg,
                                       bg="#009900",
                                       state=DISABLED,
-                                      command=self.to_history)
+                                      command=lambda: self.to_history_export(self.all_calculations))
 
         self.to_history_port.grid(row=1, column=1, padx=5, pady=5)
 
@@ -184,13 +184,11 @@ class Converter:
     def to_help(self):
         Display_help(self)
 
-    def to_history(self):
-        Display_history(self)
-
+    def to_history_export(self, all_calculations):
+        Display_history(self, all_calculations)
 
 
 class Display_help:
-
 
     def __init__(self, partner):
         backdrop = "#ffe6cc"
@@ -246,12 +244,18 @@ class Display_help:
 
 class Display_history:
 
-    def __init__(self, partner,):
+    def __init__(self, partner, calc_list):
+
         label_font = ("Arial", "10")
         backdrop = "#FFFFFF"
-        max_calcs_shown = 5
 
+        max_calcs_shown = 5
+        self.max_calcs = IntVar()
+        self.max_calcs.set(max_calcs_shown)
+
+        calcs_done = len(calc_list)
         self.calcs_done = IntVar()
+        self.calcs_done.set(calcs_done)
 
         # sets up history box and disables the history button
         self.history_box = Toplevel()
@@ -290,8 +294,21 @@ class Display_history:
                                    )
         self.history_text2.grid(row=3, column=0, padx=5, pady=5)
 
-        self.history_past = Label(self.history_frame, width=35, bg="#FEE135",
-                                  text=partner.all_calculations[-5:])
+        # ------------ #
+        # CALCULATIONS #
+        # ------------ #
+
+        # separates the newest 5 calculations from the rest of the list
+        new_calcs = calc_list[-5:]
+        new_calcs.reverse()
+        new_line = ""
+
+        for item in new_calcs:
+            new_line += item + '\n'
+        new_line = new_line[:-1]
+
+        self.history_past = Label(self.history_frame, width=30, bg="#FEE135",
+                                  text=new_line, wraplength=300, font=("Arial", "12", "bold"))
 
         self.history_past.grid(row=2)
 
