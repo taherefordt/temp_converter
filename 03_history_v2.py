@@ -16,7 +16,6 @@ class Converter:
 
         button_font = ("Arial", "12", "bold")
         button_fg = "#FFFFFF"
-        calc_list = []
 
         # sets up GUI widget
         self.temp_frame = Frame(padx=5, pady=5)
@@ -97,7 +96,7 @@ class Converter:
 
         self.to_history_port.grid(row=1, column=1, padx=5, pady=5)
 
-    # cehcks user input, and converts if valid
+    # checks user input, and converts if valid
     def input_temp(self, min_temp):
         error = f"Please enter a number that is more than {min_temp}"
         has_error = ""
@@ -278,13 +277,20 @@ class Display_history:
                                      )
         self.history_heading.grid(row=0, column=0, padx=5, pady=5)
 
+        if calcs_done >= max_calcs_shown:
+            calc_text = "Below are your recent calculations - " \
+                        f"showing {max_calcs_shown}/{calcs_done} calculations. All calculations " \
+                        "are shown to the nearest degree"
+        else:
+            calc_text = "Below are your recent calculations - " \
+                        f"showing {calcs_done}/{calcs_done} calculations. All calculations " \
+                        "are shown to the nearest degree"
+
         self.history_text1 = Label(self.history_frame, wrap=300,
                                    font=label_font, width=35, justify="left",
-                                   text="Below are your recent calculations - "
-                                        "showing {}/{} calculations. All calculations "
-                                        "are shown to the nearest degree"
+                                   text=calc_text
                                    )
-        self.history_text1.grid(row=1, column=0, padx=5, pady=5)
+        self.history_text1.grid(row=1, column=0, padx=10, pady=10)
 
         self.history_text2 = Label(self.history_frame, wrap=300,
                                    font=label_font, width=35, justify="left",
@@ -307,7 +313,7 @@ class Display_history:
             new_line += item + '\n'
         new_line = new_line[:-1]
 
-        self.history_past = Label(self.history_frame, width=30, bg="#FEE135",
+        self.history_past = Label(self.history_frame, width=25, bg="#FEE135",
                                   text=new_line, wraplength=300, font=("Arial", "12", "bold"))
 
         self.history_past.grid(row=2)
@@ -325,6 +331,8 @@ class Display_history:
         self.file_name = Entry(self.history_frame, font=("Arial", "14"),
                                bg="#D3D3D3", width=23)
         self.file_name.grid(row=4, padx=5, pady=5)
+
+        self.file_name_error = Label(self.history_frame)
 
         # ------- #
         # BUTTONS #
