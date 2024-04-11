@@ -16,7 +16,6 @@ class Converter:
 
         button_font = ("Arial", "12", "bold")
         button_fg = "#FFFFFF"
-        calc_list = []
 
         # sets up GUI widget
         self.temp_frame = Frame(padx=5, pady=5)
@@ -93,11 +92,11 @@ class Converter:
                                       fg=button_fg,
                                       bg="#009900",
                                       state=DISABLED,
-                                      command=self.to_history)
+                                      command=lambda: self.to_history_export(self.all_calculations))
 
         self.to_history_port.grid(row=1, column=1, padx=5, pady=5)
 
-    # cehcks user input, and converts if valid
+    # checks user input, and converts if valid
     def input_temp(self, min_temp):
         error = f"Please enter a number that is more than {min_temp}"
         has_error = ""
@@ -184,8 +183,8 @@ class Converter:
     def to_help(self):
         Display_help(self)
 
-    def to_history(self):
-        Display_history(self)
+    def to_history_export(self, all_calculations):
+        Display_history(self, all_calculations)
 
 
 class Display_help:
@@ -224,6 +223,7 @@ class Display_help:
         self.help_text_label = Label(self.help_frame, font=label_font,
                                      text=help_text, wrap=300,
                                      bg=backdrop)
+
         self.help_text_label.grid(padx=5, pady=5)
 
         self.exit_help = Button(self.help_frame,
@@ -243,9 +243,17 @@ class Display_help:
 
 class Display_history:
 
-    def __init__(self, partner):
+    def __init__(self, partner, calc_list):
+
         label_font = ("Arial", "10")
-        backdrop = "#FFFFFF"
+
+        max_calcs_shown = 5
+        self.max_calcs = IntVar()
+        self.max_calcs.set(max_calcs_shown)
+
+        calcs_done = len(calc_list)
+        self.calcs_done = IntVar()
+        self.calcs_done.set(calcs_done)
 
         # sets up history box and disables the history button
         self.history_box = Toplevel()
@@ -257,7 +265,7 @@ class Display_history:
 
         # setting up the history frame
         self.history_frame = Frame(self.history_box, width=10,
-                                   height=200, bg=backdrop)
+                                   height=200)
         self.history_frame.grid(padx=5, pady=5)
 
         # --------------- #
@@ -268,13 +276,20 @@ class Display_history:
                                      )
         self.history_heading.grid(row=0, column=0, padx=5, pady=5)
 
+        if calcs_done >= max_calcs_shown:
+            calc_text = "Below are your recent calculations - " \
+                        f"showing {max_calcs_shown}/{calcs_done} calculations. All calculations " \
+                        "are shown to the nearest degree"
+        else:
+            calc_text = "Below are your recent calculations - " \
+                        f"showing {calcs_done}/{calcs_done} calculations. All calculations " \
+                        "are shown to the nearest degree"
+
         self.history_text1 = Label(self.history_frame, wrap=300,
                                    font=label_font, width=35, justify="left",
-                                   text="Below are your recent calculations - "
-                                        "showing {}/{} calculations. All calculations "
-                                        "are shown to the nearest degree"
+                                   text=calc_text
                                    )
-        self.history_text1.grid(row=1, column=0, padx=5, pady=5)
+        self.history_text1.grid(row=1, column=0, padx=10, pady=10)
 
         self.history_text2 = Label(self.history_frame, wrap=300,
                                    font=label_font, width=35, justify="left",
@@ -284,18 +299,39 @@ class Display_history:
                                    )
         self.history_text2.grid(row=3, column=0, padx=5, pady=5)
 
+        # ------------ #
+        # CALCULATIONS #
+        # ------------ #
+
+        # separates the newest 5 calculations from the rest of the list
+        new_calcs = calc_list[-5:]
+        new_calcs.reverse()
+        new_line = ""
+
+        for item in new_calcs:
+            new_line += item + '\n'
+        new_line = new_line[:-1]
+
+        self.history_past = Label(self.history_frame, width=25, bg="#FEE135",
+                                  text=new_line, wraplength=300, font=("Arial", "12", "bold"))
+
+        self.history_past.grid(row=2)
+
         error = "filename error goes here"
         self.output_label = Label(self.history_frame,
                                   text=error,
                                   font=("Arial", "10", "bold"),
-                                  fg="#9C0000")
+                                  fg="#9C0000",
+                                  )
 
         # --------------- #
         # FILE NAME STUFF #
         # --------------- #
         self.file_name = Entry(self.history_frame, font=("Arial", "14"),
-                               bg="#D3D3D3")
+                               bg="#D3D3D3", width=23)
         self.file_name.grid(row=4, padx=5, pady=5)
+
+        self.file_name_error = Label(self.history_frame)
 
         # ------- #
         # BUTTONS #
@@ -304,18 +340,19 @@ class Display_history:
         self.button_frame.grid(row=6)
 
         self.export = Button(self.button_frame,
-                             font=("Arial", "10", "bold"),
+                             font=("Arial", "12", "bold"),
                              text="Export",
                              width=13,
-                             bg="#DAA520",
+                             bg="#004C99",
                              )
         self.export.grid(row=0, column=0, pady=10, padx=10)
 
         self.exit_history = Button(self.button_frame,
-                                   font=("Arial", "10", "bold"),
+                                   font=("Arial", "12", "bold"),
                                    text="Dismiss",
                                    width=13,
-                                   bg="#DAA520",
+                                   bg="red",
+                                   fg="#FFFFFF",
                                    command=partial(self.close_history, partner))
 
         self.exit_history.grid(row=0, column=1, pady=10, padx=10)

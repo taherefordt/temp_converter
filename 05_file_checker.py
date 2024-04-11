@@ -1,5 +1,7 @@
 from functools import partial
 from tkinter import *
+from datetime import date
+import re
 
 
 class Converter:
@@ -252,6 +254,10 @@ class Display_history:
         self.max_calcs = IntVar()
         self.max_calcs.set(max_calcs_shown)
 
+        self.var_filename = StringVar()
+        self.var_todays_date = StringVar()
+        self.var_calc_list = StringVar()
+
         calcs_done = len(calc_list)
         self.calcs_done = IntVar()
         self.calcs_done.set(calcs_done)
@@ -306,16 +312,24 @@ class Display_history:
 
         # separates the newest 5 calculations from the rest of the list
         new_calcs = calc_list[-5:]
+        # reverses the order of items to show the recent calcs first
         new_calcs.reverse()
-        new_line = ""
+        # a string list of all calcs
+        all_calculations = ""
+        # a placeholder for the sting list of recent calcs
+        recent_calculations = ""
+
+        for item in calc_list:
+            all_calculations += item + '\n'
 
         for item in new_calcs:
-            new_line += item + '\n'
-        new_line = new_line[:-1]
-        self.var_calc_list.set(new_line)
+            recent_calculations += item + '\n'
+        recent_calculations = recent_calculations[:-2]
+
+        self.var_calc_list.set(all_calculations)
 
         self.history_past = Label(self.history_frame, width=25, bg="#FEE135",
-                                  text=new_line, wraplength=300, font=("Arial", "12", "bold"))
+                                  text=recent_calculations, wraplength=300, font=("Arial", "12", "bold"))
 
         self.history_past.grid(row=2)
 
@@ -329,11 +343,16 @@ class Display_history:
         # --------------- #
         # FILE NAME STUFF #
         # --------------- #
-        self.file_name = Entry(self.history_frame, font=("Arial", "14"),
-                               bg="#D3D3D3", width=23)
-        self.file_name.grid(row=4, padx=5, pady=5)
+        self.file_name_entry = Entry(self.history_frame, font=("Arial", "14"),
+                                     bg="#D3D3D3", width=23)
+        self.file_name_entry.grid(row=4, padx=5, pady=5)
 
-        self.file_name_error = Label(self.history_frame)
+        self.filename_feedback_label = Label(self.history_frame, text="",
+                                             font=("Arial", "10", "bold"),
+                                             wrap=250
+                                             )
+
+        self.filename_feedback_label.grid(row=5)
 
         # ------- #
         # BUTTONS #
@@ -346,7 +365,8 @@ class Display_history:
                              text="Export",
                              width=13,
                              bg="#004C99",
-                             )
+                             fg="#FFFFFF",
+                             command=self.make_file)
         self.export.grid(row=0, column=0, pady=10, padx=10)
 
         self.exit_history = Button(self.button_frame,
@@ -359,10 +379,107 @@ class Display_history:
 
         self.exit_history.grid(row=0, column=1, pady=10, padx=10)
 
+    def make_file(self):
+
+        filename = self.file_name_entry.get()
+
+        filename_ok = ""
+        date_part = self.get_date()
+
+        if filename == "":
+
+            date_part = self.get_date()
+            filename = f"{date_part}_temperature_calculations"
+
+        else:
+
+            filename_ok = self.check_filename(filename)
+
+        if filename_ok == "":
+            filename += ".txt"
+            success = "Success! Your calculation history" \
+                      f"has been saved as {filename}"
+            self.var_filename.set(filename)
+            self.filename_feedback_label.config(text="You are OK",
+                                                fg="#009900")
+            self.file_name_entry.config(bg="#FFFFFF")
+
+            self.write_to_file()
+
+        else:
+            self.filename_feedback_label.config(text=filename_ok,
+                                                fg="#9C0000")
+            self.file_name_entry.config(bg="#F8CECC")
+
+    @staticmethod
+    def check_filename(filename):
+        problem = ""
+
+        # expression to check the filename is valid
+        valid_char = "[A-Za-z0-9_]"
+
+        # checks each letter of the filename
+        for character in filename:
+            if re.match(valid_char, character):
+                continue
+
+            elif character == " ":
+                problem = "sorry, no spaces allowed"
+
+            else:
+                problem = f"sorry, no {character}'s allowed"
+            break
+
+        if problem != "":
+            problem = f"{problem}. Use letters / numbers / underscores only"
+
+        return problem
+
+    def write_to_file(self):
+
+        # retrieve date, filename and calculation history...
+        filename = self.var_filename.get()
+        generated_date = self.var_todays_date.get()
+
+        # set up strings to be written to file
+        heading = "|>=+-- Temperature Calculations --+=<|\n"
+        generated = "Generated: {}\n".format(generated_date)
+        sub_heading = "Here is your calculation history " \
+                      "(oldest to newest)...\n"
+
+        all_calculations = self.var_calc_list.get()
+
+        to_output_list = [heading, generated,
+                          sub_heading, all_calculations]
+
+        # write to file
+
+        # write output to file
+        text_file = open(filename, "w+")
+
+        for item in to_output_list:
+            text_file.write(item)
+            text_file.write("\n")
+
+        # close file
+        text_file.close()
+
     def close_history(self, partner):
         # put button back to normal
         partner.to_history_port.config(state=NORMAL)
         self.history_box.destroy()
+
+    def get_date(self):
+        today = date.today()
+
+        day = today.strftime("%d")
+        month = today.strftime("%m")
+        year = today.strftime("%y")
+
+        date_today = f"{day}/{month}/{year}"
+        self.var_todays_date.set(date_today)
+
+        return f"{year}_{month}_{day}"
 
 
 # main routine

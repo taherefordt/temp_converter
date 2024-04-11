@@ -1,0 +1,12 @@
+|>=+-- Temperature Calculations --+=<|
+
+Generated: 11/04/24
+
+Here is your calculation history (oldest to newest)...
+
+1234567 F° is 685853 C°
+123456 F° is 68569 C°
+12345 F° is 6841 C°
+1234 F° is 668 C°
+1234 F° is 668 C°
+

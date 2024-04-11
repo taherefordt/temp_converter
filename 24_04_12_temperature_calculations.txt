@@ -1,0 +1,13 @@
+|>=+-- Temperature Calculations --+=<|
+
+Generated: 12/04/24
+
+Here is your calculation history (oldest to newest)...
+
+1 F° is -17 C°
+12 F° is -11 C°
+123 F° is 51 C°
+1234 F° is 668 C°
+12345 F° is 6841 C°
+123456 F° is 68569 C°
+
